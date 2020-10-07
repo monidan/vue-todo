@@ -1,8 +1,8 @@
-# todoapp-version-1.2
+# Todo application on Vue/Webpack
 
-> A Vue.js project
+Web-app to handle you todos in the browser!
 
-## Build Setup
+## Installation
 
 ``` bash
 # install dependencies
