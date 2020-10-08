@@ -3,15 +3,24 @@ import Vuex from 'vuex'
 
 Vue.use(Vuex);
 
+const validMutations = [
+  'editTodo',
+  'deleteTodo',
+  'toggleTodo',
+  'addTodo'
+];
 
 /* eslint-disable no-new */
 const store = new Vuex.Store({
   state: {
     bookmarks: [],
-    newBookmark: false,
+    mutationsHistory: [],
     currentBookmark: {},
-    letterLimit: 35,
+
     isError: false,
+    newBookmark: false,
+
+    letterLimit: 35,
   },
   mutations: {
     isBookmarkShowing: function (state) {
@@ -27,11 +36,13 @@ const store = new Vuex.Store({
     },
     addBookmark: function (state, bookmark) {
         state.bookmarks.push(bookmark);
+        localStorage.setItem('store', JSON.stringify(state.bookmarks));
     },
     removeBookmark: function (state, bookmarkId) {
       state.bookmarks = state.bookmarks.filter(bookmark =>
         bookmark.id !== bookmarkId
       )
+      localStorage.setItem('store', JSON.stringify(state.bookmarks));
     },
     editBookmark: function (state, editedBookmark) {
       // modal confirmation
@@ -40,6 +51,7 @@ const store = new Vuex.Store({
           return bookmark
         }
       )
+      localStorage.setItem('store', JSON.stringify(state.bookmarks));
     },
     currentBookmark: function(state, bookmarkID){
       state.currentBookmark =  state.bookmarks.find(currentBookmark =>
@@ -49,7 +61,6 @@ const store = new Vuex.Store({
 
     deleteTodo: function (state, todoId) {
       let bookmark = state.currentBookmark;
-      console.log(state.currentBookmark)
       // modal window
        bookmark.todos = bookmark.todos.filter(currentTodo => currentTodo.id !== todoId);
     },
@@ -67,19 +78,13 @@ const store = new Vuex.Store({
         todoId === currentTodo.id
       )
       bookmarkTodo.done = !bookmarkTodo.done;
+      localStorage.setItem('store', JSON.stringify(state.bookmarks));
+    },
+    addTodo: function (state, newTodo){
+        state.currentBookmark.todos.push(newTodo);
     },
     toggleError: function (state) {
       state.isError = !state.isError
-    },
-
-    emptyState(state){
-      this.replaceState({
-        bookmarks: [],
-        newBookmark: false,
-        currentBookmark: {},
-        letterLimit: 35,
-        isError: false,
-      })
     },
   },
   actions: {
@@ -95,8 +100,8 @@ const store = new Vuex.Store({
 })
 
 store.subscribe((mutation, state) =>{
-  if(mutation.type !== 'emptyState'){
-    localStorage.setItem('store', JSON.stringify(state.bookmarks));
+  if(validMutations.includes(mutation.type) && /edit/.test(window.location.pathname)){
+    state.mutationsHistory.push(mutation);
   }
 })
 

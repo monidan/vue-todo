@@ -66,4 +66,7 @@
   .todo-list__preview{
     padding: 0 15px 15px;
   }
+  .todo__button > button{
+    display: none;
+  }
 </style>

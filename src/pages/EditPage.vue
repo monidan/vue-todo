@@ -11,7 +11,7 @@
                  placeholder="Input your new title">
           <div class="bookmark__main-buttons">
             <Button type="undo" class="todo__button undo"
-                    @click.native=""/>
+                    @click.native="undoHandler"/>
             <Button type="save" class="todo__button save"
                     @click.native="saveBookmarkHandler"/>
             <Button type="trash"
@@ -42,11 +42,10 @@
 </template>
 
 <script>
-  import Button from "../components/Button";
-  import Todo from "../components/ToDo";
-  import HomePage from "./HomePage";
+import Button from "../components/Button";
+import Todo from "../components/ToDo";
 
-    export default {
+export default {
         name: "edit",
         components: {
           Button,
@@ -54,12 +53,9 @@
         },
         data() {
           return{
-            currentTodoId: '',
             bookmarkId: this.$route.params.bookmarkId,
-            todoTitle: '',
             isTodoTitleChanging: false,
             isBookmarkTitleChanging: false,
-            bookmark: this.$store.getters.findBookmarkById(this.$route.params.bookmarkId),
           }
         },
         methods: {
@@ -104,6 +100,20 @@
             this.$store.commit('currentBookmark', this.bookmark.id);
             this.$store.commit('toggleTodo', id);
           },
+          undoHandler() {
+            let mutations = this.$store.state.mutationsHistory;
+            let popMutation = mutations.pop();
+            console.log(popMutation)
+            if(mutations){
+              this.$store.state.bookmarks = JSON.parse(localStorage.getItem('store'));
+              mutations.map(mutation => this.$store.commit(mutation));
+              mutations.push(popMutation);
+              console.log(this.computed.bookmark().title)
+            } else {
+            //  modal
+              console.error('undoHandler error!');
+            }
+          }
         },
       computed: {
         bookmarkSnapshot() {
@@ -112,6 +122,9 @@
         bookmarkTitle() {
           return this.bookmark.title.length < this.$store.state.letterLimit ? this.bookmark.title :
             this.bookmark.title.slice(0, this.$store.state.letterLimit) + '...';
+        },
+        bookmark() {
+          return this.$store.getters.findBookmarkById(this.$route.params.bookmarkId);
         }
       }
     }
@@ -174,6 +187,9 @@
     transition: all .2s;
 
     border-radius: 100px;
+  }
+  /deep/  .todo__button > button{
+    display: block!important;
   }
   .bookmark__add-button{
     width: 100%;
