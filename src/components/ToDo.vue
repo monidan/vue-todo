@@ -9,18 +9,14 @@
         <input type="checkbox" class="todo_checkbox" :checked="todo.done" v-if="isDisabled" disabled>
         <div class="todo_header">
           <h3 class="todo__title"
-              v-if="!isTitleChanging && todo.title.length < this.$store.state.letterLimit">
-            {{todo.title}}
+              v-if="!isTitleChanging">
+            {{todoTitleComputed}}
           </h3>
           <input v-else-if="isTitleChanging"
                  type="text"
                  class="todo__title-edit"
                  v-model="todoTitle"
                  @keyup.enter="editHandler">
-          <h3 class="todo__title"
-              v-else>
-            {{todo.title.slice(0, this.$store.state.letterLimit) + '...'}}
-          </h3>
         </div>
       </div>
       <div class="todo__buttons">
@@ -65,7 +61,13 @@
         this.isTitleChanging = false;
       },
       checkboxHandler() {
-        this.$emit('todo-checkbox-toggle', this.$props.todo)
+        this.$emit('todo-checkbox-toggle', this.$props.todo.id)
+      }
+    },
+    computed: {
+      todoTitleComputed() {
+        return this.todoTitle.length < this.$store.state.letterLimit ? this.todoTitle :
+          this.todoTitle.slice(0, this.$store.state.letterLimit) + '...';
       }
     }
   }

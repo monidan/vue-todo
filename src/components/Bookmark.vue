@@ -4,13 +4,8 @@
        class="bookmark">
     <li>
       <div class="bookmark__heading">
-        <h2 class="bookmark__title"
-            v-if="bookmark.title.length < this.$store.state.letterLimit">
-          {{bookmark.title}}
-        </h2>
-        <h2 class="bookmark__title"
-            v-else>
-          {{bookmark.title.slice(0, this.$store.state.letterLimit) + '...'}}
+        <h2 class="bookmark__title">
+          {{bookmarkTitle}}
         </h2>
         <div class="bookmark__buttons">
           <router-link :to="{name: 'edit', params: {bookmarkId: bookmark.id}}">
@@ -63,6 +58,12 @@
       deleteBookmark: function () {
         this.$store.commit('removeBookmark', this.$props.bookmark.id)
       },
+    },
+    computed: {
+      bookmarkTitle() {
+        return this.$props.bookmark.title.length < this.$store.state.letterLimit ? this.$props.bookmark.title :
+          this.$props.bookmark.title.slice(0, this.$store.state.letterLimit) + '...';
+      }
     }
   }
 </script>

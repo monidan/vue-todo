@@ -2,20 +2,16 @@
   <div class="container">
       <div class="bookmark">
         <div class="bookmark__header">
-          <h2 v-if="!isBookmarkTitleChanging && bookmark.title.length < $store.state.letterLimit"
+          <h2 v-if="!isBookmarkTitleChanging"
               @dblclick="isBookmarkTitleChanging = true">
-            {{bookmark.title}}
-          </h2>
-          <h2 v-else-if="!isBookmarkTitleChanging && bookmark.title.length < $store.state.letterLimit"
-              @dblclick="isBookmarkTitleChanging = true">
-            {{bookmark.title.slice(0, $store.state.letterLimit) + '...'}}
+            {{bookmarkTitle}}
           </h2>
           <input type="text" v-else
                  @keyup.enter="changeBookmarkTitle"
                  placeholder="Input your new title">
           <div class="bookmark__main-buttons">
             <Button type="undo" class="todo__button undo"
-                    @click.native="undoMutation"/>
+                    @click.native=""/>
             <Button type="save" class="todo__button save"
                     @click.native="saveBookmarkHandler"/>
             <Button type="trash"
@@ -80,33 +76,44 @@
             this.$router.go(-1)
           },
           closeBookmarkHandler() {
+            //  modal window
             this.$router.go(-1);
-          //  modal window
           },
           deleteTodo({id}) {
-            // let deletingTodo = this.bookmark.todos
-            //   .find(todo => todo.id === id);
-            // this.bookmark.todos = this.bookmark.todos.filter(todo => todo.id !== deletingTodo.id);
+            this.$store.commit('currentBookmark', this.bookmark.id)
             this.$store.commit('deleteTodo', id)
           },
           editTodo({title, id, done}) {
-            let replacingTodo = this.bookmark.todos.find(todo =>
-              todo.id === id
-            )
-            replacingTodo.title = this.todoTitle;
-            replacingTodo.id = id;
-            replacingTodo.done = done;
-            this.todoTitle = '';
-            this.isTodoTitleChanging = false;
+            let editedTodo = {
+              title: title,
+              id: id,
+              done: done
+            }
+            this.$store.commit('currentBookmark', this.bookmark.id)
+            this.$store.commit('editTodo', editedTodo);
           },
-          toggleTodoCheckbox({todo}) {
-            console.log(todo)
-            // let todo = this.bookmarkие .todos.find(todo =>
-            //   todo.id === id
-            // );
-            // todo.done = !todo.done;
+          addTodo(){
+            let newTodo = {};
+
+            //validation
+
+            this.$store.commit('currentBookmark', this.bookmark.id);
+            this.$store.commit('addTodo', newTodo);
+          },
+          toggleTodoCheckbox({id}) {
+            this.$store.commit('currentBookmark', this.bookmark.id);
+            this.$store.commit('toggleTodo', id);
           },
         },
+      computed: {
+        bookmarkSnapshot() {
+          return JSON.parse(JSON.stringify(this.bookmark));
+        },
+        bookmarkTitle() {
+          return this.bookmark.title.length < this.$store.state.letterLimit ? this.bookmark.title :
+            this.bookmark.title.slice(0, this.$store.state.letterLimit) + '...';
+        }
+      }
     }
 </script>
 
