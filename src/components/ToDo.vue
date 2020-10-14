@@ -43,7 +43,7 @@
     },
     data() {
       return {
-        todoTitle: this.$props.todo.title,
+        editedTodoTitle: this.$props.todo.title,
         isTitleChanging: false
       }
     },
@@ -54,7 +54,7 @@
       editHandler() {
         this.$emit('todo-editing',
           {
-            title: this.todoTitle,
+            title: this.editedTodoTitle,
             id:this.$props.todo.id,
             done: this.$props.todo.done
         })
@@ -68,6 +68,14 @@
       todoTitleComputed() {
         return this.todoTitle.length < this.$store.state.letterLimit ? this.todoTitle :
           this.todoTitle.slice(0, this.$store.state.letterLimit) + '...';
+      },
+      todoTitle: {
+        get: function () {
+          return this.$props.todo.title
+        },
+        set: function (newTitle) {
+          this.editedTodoTitle = newTitle;
+        }
       }
     }
   }

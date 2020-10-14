@@ -15,10 +15,13 @@ const store = new Vuex.Store({
   state: {
     bookmarks: [],
     mutationsHistory: [],
+    undoMutationsHistory: [],
     currentBookmark: {},
+    redoMutation: {},
 
     isError: false,
     newBookmark: false,
+    redo: false,
 
     letterLimit: 35,
   },
@@ -62,7 +65,7 @@ const store = new Vuex.Store({
     deleteTodo: function (state, todoId) {
       let bookmark = state.currentBookmark;
       // modal window
-       bookmark.todos = bookmark.todos.filter(currentTodo => currentTodo.id !== todoId);
+      bookmark.todos = bookmark.todos.filter(currentTodo => currentTodo.id !== todoId);
     },
     editTodo: function (state, editedTodo) {
       let bookmark = state.currentBookmark;
@@ -83,18 +86,47 @@ const store = new Vuex.Store({
     addTodo: function (state, newTodo){
         state.currentBookmark.todos.push(newTodo);
     },
+
     toggleError: function (state) {
       state.isError = !state.isError
     },
+
+    undoMutation: function (state) {
+      state.undoMutationsHistory.forEach(mutation => {
+        this.commit(`${mutation.type}`, mutation.payload)
+      });
+    },
+    restoreBookmarks: function (state){
+      state.bookmarks = JSON.parse(localStorage.getItem('store'));
+    },
+    resetMutationsHistory: function (state){
+      state.mutationsHistory = [];
+      if(!state.redo){
+        state.redoMutation = state.undoMutationsHistory.pop();
+        state.redo = true;
+      } else {
+        state.undoMutationsHistory.push(state.redoMutation);
+        state.redo = false;
+      }
+    }
   },
   actions: {
+    undoAction: function ({commit}, bookmarkId) {
+      commit('resetMutationsHistory')
+      commit('restoreBookmarks')
+      commit('currentBookmark', bookmarkId)
+      commit('undoMutation')
+    }
   },
   modules: {
   },
   getters: {
     findBookmarkById: state => bookmarkId => {
-      state.bookmarks = JSON.parse(localStorage.getItem('store'));
+      // state.bookmarks = JSON.parse(localStorage.getItem('store'));
       return state.bookmarks.find(bookmark => bookmark.id === Number(bookmarkId));
+    },
+    isHistoryMutationsEmpty: state => {
+      return state.undoMutationsHistory.length === 0 && state.redoMutation === undefined
     }
   },
 })
@@ -102,6 +134,7 @@ const store = new Vuex.Store({
 store.subscribe((mutation, state) =>{
   if(validMutations.includes(mutation.type) && /edit/.test(window.location.pathname)){
     state.mutationsHistory.push(mutation);
+    state.undoMutationsHistory = state.mutationsHistory;
   }
 })
 

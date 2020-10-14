@@ -19,7 +19,7 @@
                     @click.native="deleteBookmark"
                     title="Delete"/>
             <Button type="times" class="todo__button times"
-                    @click.native=""/>
+                    @click.native="closeBookmarkHandler"/>
           </div>
         </div>
         <div class="bookmark__inner">
@@ -27,9 +27,9 @@
             <Todo v-for="todo in bookmark.todos"
                   :todo.sync="todo"
                   :key="todo.id"
-                  @todo-deleting="deleteTodo"
-                  @todo-editing="editTodo"
-                  @todo-checkbox-toggle="toggleTodoCheckbox"/>
+                  @todo-deleting="deleteTodoHandler"
+                  @todo-editing="editTodoHandler"
+                  @todo-checkbox-toggle="toggleTodoCheckboxHandler"/>
           </div>
           <div class="bookmark__add-button">
             <button class="todo__add-button" title="Add todo">
@@ -45,6 +45,8 @@
 import Button from "../components/Button";
 import Todo from "../components/ToDo";
 
+import {mapMutations} from 'vuex';
+
 export default {
         name: "edit",
         components: {
@@ -59,66 +61,59 @@ export default {
           }
         },
         methods: {
+          ...mapMutations([
+            'currentBookmark',
+            'toggleTodo',
+            'addTodo',
+            'editTodo',
+            'deleteTodo',
+            'removeBookmark',
+            'editBookmark'
+          ]),
           changeBookmarkTitle(e) {
             this.isBookmarkTitleChanging = false;
             this.bookmark.title =  e.target.value;
           },
           saveBookmarkHandler() {
-            this.$store.commit('editBookmark', this.bookmark);
+            this.editBookmark(this.bookmark)
           },
           deleteBookmark: function () {
             // modal window
-            this.$store.commit('removeBookmark', this.bookmark.id)
+            this.removeBookmark(this.bookmark.id)
             this.$router.go(-1)
           },
           closeBookmarkHandler() {
-            //  modal window
+            // modal window
             this.$router.go(-1);
           },
-          deleteTodo({id}) {
-            this.$store.commit('currentBookmark', this.bookmark.id)
-            this.$store.commit('deleteTodo', id)
+          deleteTodoHandler({id}) {
+            this.currentBookmark(this.bookmark.id)
+            this.deleteTodo(id)
           },
-          editTodo({title, id, done}) {
-            let editedTodo = {
-              title: title,
-              id: id,
-              done: done
-            }
-            this.$store.commit('currentBookmark', this.bookmark.id)
-            this.$store.commit('editTodo', editedTodo);
+          editTodoHandler({title, id, done}) {
+            this.currentBookmark(this.bookmark.id)
+            this.editTodo({title, id, done})
           },
-          addTodo(){
+          addTodoHandler(){
             let newTodo = {};
-
-            //validation
-
-            this.$store.commit('currentBookmark', this.bookmark.id);
-            this.$store.commit('addTodo', newTodo);
+            // validation
+            this.currentBookmark(this.bookmark.id)
+            this.addTodo(newTodo);
           },
-          toggleTodoCheckbox({id}) {
-            this.$store.commit('currentBookmark', this.bookmark.id);
-            this.$store.commit('toggleTodo', id);
+          toggleTodoCheckboxHandler({id}) {
+            this.currentBookmark(this.bookmark.id)
+            this.toggleTodo(id)
           },
           undoHandler() {
-            let mutations = this.$store.state.mutationsHistory;
-            let popMutation = mutations.pop();
-            console.log(popMutation)
-            if(mutations){
-              this.$store.state.bookmarks = JSON.parse(localStorage.getItem('store'));
-              mutations.map(mutation => this.$store.commit(mutation));
-              mutations.push(popMutation);
-              console.log(this.computed.bookmark().title)
+            if(!this.$store.getters.isHistoryMutationsEmpty){
+              this.$store.dispatch('undoAction', this.bookmark.id);
             } else {
             //  modal
               console.error('undoHandler error!');
             }
-          }
+          },
         },
       computed: {
-        bookmarkSnapshot() {
-          return JSON.parse(JSON.stringify(this.bookmark));
-        },
         bookmarkTitle() {
           return this.bookmark.title.length < this.$store.state.letterLimit ? this.bookmark.title :
             this.bookmark.title.slice(0, this.$store.state.letterLimit) + '...';
