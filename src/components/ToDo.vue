@@ -5,7 +5,7 @@
         <input type="checkbox" class="todo_checkbox"
                 :checked="todo.done"
                 v-if="!isDisabled"
-                @click="checkboxHandler">
+                @change="checkboxHandler">
         <input type="checkbox" class="todo_checkbox" :checked="todo.done" v-if="isDisabled" disabled>
         <div class="todo_header">
           <h3 class="todo__title"
@@ -61,7 +61,7 @@
         this.isTitleChanging = false;
       },
       checkboxHandler() {
-        this.$emit('todo-checkbox-toggle', this.$props.todo.id)
+        this.$emit('todo-checkbox-toggle', {id: this.$props.todo.id})
       }
     },
     computed: {
@@ -117,6 +117,8 @@
     cursor: pointer;
 
     margin-right: .4em;
+
+    box-shadow: 0 2px 5px 1px grey;
   }
 
 /*Hovers*/

@@ -27,12 +27,27 @@
             <Todo v-for="todo in bookmark.todos"
                   :todo.sync="todo"
                   :key="todo.id"
+                  :is-disabled="false"
                   @todo-deleting="deleteTodoHandler"
                   @todo-editing="editTodoHandler"
                   @todo-checkbox-toggle="toggleTodoCheckboxHandler"/>
+            <div class="bookmark__todo-adding" v-if="isTodoAdding">
+              <input type="checkbox" disabled>
+              <input type="text"
+                     v-model="newTodo.title"
+                     @keyup.enter="addTodoHandler"
+                     placeholder="Input your title here...">
+              <button v-show="newTodo.title !== undefined  && newTodo.title.length !== 0"
+                 class="todo__save-button"
+                 @click="addTodoHandler">
+                Save
+              </button>
+            </div>
           </div>
           <div class="bookmark__add-button">
-            <button class="todo__add-button" title="Add todo">
+            <button class="todo__add-button"
+                    title="Add todo"
+                    @click="showAddingTodoForm">
               <font-awesome-icon icon="plus-square"/>
             </button>
           </div>
@@ -58,6 +73,8 @@ export default {
             bookmarkId: this.$route.params.bookmarkId,
             isTodoTitleChanging: false,
             isBookmarkTitleChanging: false,
+            isTodoAdding: false,
+            newTodo: {}
           }
         },
         methods: {
@@ -68,23 +85,26 @@ export default {
             'editTodo',
             'deleteTodo',
             'removeBookmark',
-            'editBookmark'
+            'editBookmark',
+            'restoreBookmarks'
           ]),
           changeBookmarkTitle(e) {
             this.isBookmarkTitleChanging = false;
             this.bookmark.title =  e.target.value;
           },
           saveBookmarkHandler() {
-            this.editBookmark(this.bookmark)
+            this.editBookmark(this.bookmark);
+            this.$router.replace('/')
           },
           deleteBookmark: function () {
             // modal window
             this.removeBookmark(this.bookmark.id)
-            this.$router.go(-1)
+            this.$router.replace('/')
           },
           closeBookmarkHandler() {
             // modal window
-            this.$router.go(-1);
+            this.restoreBookmarks();
+            this.$router.replace('/')
           },
           deleteTodoHandler({id}) {
             this.currentBookmark(this.bookmark.id)
@@ -95,10 +115,19 @@ export default {
             this.editTodo({title, id, done})
           },
           addTodoHandler(){
-            let newTodo = {};
-            // validation
-            this.currentBookmark(this.bookmark.id)
-            this.addTodo(newTodo);
+            if (this.newTodo.title.length !== 0) {
+              this.newTodo.id = this.nextTodoId;
+              this.currentBookmark(this.bookmark.id);
+              this.addTodo(this.newTodo)
+
+              this.newTodo = {}
+              this.isTodoAdding = false;
+            } else {
+            //  modal window about an empty title!
+            }
+          },
+          showAddingTodoForm() {
+            this.isTodoAdding = true;
           },
           toggleTodoCheckboxHandler({id}) {
             this.currentBookmark(this.bookmark.id)
@@ -120,6 +149,15 @@ export default {
         },
         bookmark() {
           return this.$store.getters.findBookmarkById(this.$route.params.bookmarkId);
+        },
+        nextTodoId() {
+          let freeId = '';
+          let lastId = 0;
+          this.bookmark.todos.forEach(todo => {
+            let todoIdNumber = Number(todo.id.split('-')[1]);
+            todoIdNumber >= lastId ? lastId = todoIdNumber : lastId;
+          })
+          return freeId + "todo-" + String(lastId + 1);
         }
       }
     }
@@ -172,7 +210,37 @@ export default {
     flex-direction: column;
     align-items: center;
   }
+  .bookmark__todo-adding {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
+    width: 100%;
+    padding: 1.5em 2em;
+    margin-top: 1em;
+    background-color: rgba(255,255,255, 0.3);
+  }
+  .bookmark__todo-adding input[type='text'] {
+    margin: 0 0.4em;
+  }
+  .todo__save-button{
+    color: beige;1
+
+    box-sizing: border-box;
+    font-size: 0.9rem;
+    padding: 0.05em 1em;
+
+    background-color: forestgreen;
+
+    border: 1px solid transparent;
+    border-radius: 4px;
+
+    cursor: pointer;
+
+    box-shadow: 0 2px 5px 1px grey;
+
+    transition: all .2s;
+  }
   .todo__button{
     padding: 10px;
     cursor: pointer;
@@ -215,5 +283,10 @@ export default {
     box-shadow: inset 0 -5px 5px -5px rgb(21, 122, 110),
                 inset 0 5px 5px -5px white;
     background-color: rgba(84, 122, 165, 0.5);
+  }
+
+  .todo__save-button:hover{
+    opacity: 0.8;
+    box-shadow: none;
   }
 </style>

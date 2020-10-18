@@ -82,7 +82,6 @@ const store = new Vuex.Store({
         todoId === currentTodo.id
       )
       bookmarkTodo.done = !bookmarkTodo.done;
-      localStorage.setItem('store', JSON.stringify(state.bookmarks));
     },
     addTodo: function (state, newTodo){
         state.currentBookmark.todos.push(newTodo);
