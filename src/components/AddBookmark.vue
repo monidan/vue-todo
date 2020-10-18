@@ -71,7 +71,6 @@
 
 <script>
   import Todo from './ToDo'
-  import {myData} from '../data'
 
   export default{
     components: {
