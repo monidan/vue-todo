@@ -22,6 +22,7 @@ const store = new Vuex.Store({
     isError: false,
     newBookmark: false,
     redo: false,
+    newMutation: true,
 
     letterLimit: 35,
   },
@@ -92,30 +93,33 @@ const store = new Vuex.Store({
     },
 
     undoMutation: function (state) {
+      state.redoMutation = state.undoMutationsHistory.pop();
+      state.redo = true;
+      state.newMutation = false;
       state.undoMutationsHistory.forEach(mutation => {
         this.commit(`${mutation.type}`, mutation.payload)
       });
+      state.newMutation = true;
+    },
+    redoMutation: function (state) {
+      state.undoMutationsHistory.push(state.redoMutation);
+      state.redo = false;
+      state.newMutation = false;
+      state.undoMutationsHistory.forEach(mutation => {
+        this.commit(`${mutation.type}`, mutation.payload)
+      });
+      state.newMutation = true;
     },
     restoreBookmarks: function (state){
       state.bookmarks = JSON.parse(localStorage.getItem('store'));
     },
-    resetMutationsHistory: function (state){
-      state.mutationsHistory = [];
-      if(!state.redo){
-        state.redoMutation = state.undoMutationsHistory.pop();
-        state.redo = true;
-      } else {
-        state.undoMutationsHistory.push(state.redoMutation);
-        state.redo = false;
-      }
-    }
   },
   actions: {
-    undoAction: function ({commit}, bookmarkId) {
-      commit('resetMutationsHistory')
+    undoAction: function ({commit, state}, bookmarkId) {
       commit('restoreBookmarks')
       commit('currentBookmark', bookmarkId)
-      commit('undoMutation')
+      if (state.redo) commit('redoMutation')
+      else commit('undoMutation');
     }
   },
   modules: {
@@ -133,7 +137,10 @@ const store = new Vuex.Store({
 
 store.subscribe((mutation, state) =>{
   if(validMutations.includes(mutation.type) && /edit/.test(window.location.pathname)){
-    state.mutationsHistory.push(mutation);
+    if (state.newMutation) {
+      state.mutationsHistory.push(mutation);
+      state.redo = false;
+    }
     state.undoMutationsHistory = state.mutationsHistory;
   }
 })
