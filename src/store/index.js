@@ -49,7 +49,6 @@ const store = new Vuex.Store({
       localStorage.setItem('store', JSON.stringify(state.bookmarks));
     },
     editBookmark: function (state, editedBookmark) {
-      // modal confirmation
       state.bookmarks = state.bookmarks.map(bookmark => {
           if (bookmark.id === editedBookmark.id) bookmark = editedBookmark;
           return bookmark
@@ -65,7 +64,6 @@ const store = new Vuex.Store({
 
     deleteTodo: function (state, todoId) {
       let bookmark = state.currentBookmark;
-      // modal window
       bookmark.todos = bookmark.todos.filter(currentTodo => currentTodo.id !== todoId);
     },
     editTodo: function (state, editedTodo) {
@@ -125,7 +123,6 @@ const store = new Vuex.Store({
   },
   getters: {
     findBookmarkById: state => bookmarkId => {
-      // state.bookmarks = JSON.parse(localStorage.getItem('store'));
       return state.bookmarks.find(bookmark => bookmark.id === Number(bookmarkId));
     },
     isHistoryMutationsEmpty: state => {
